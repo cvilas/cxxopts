@@ -26,7 +26,8 @@ THE SOFTWARE.
 
 #include "cxxopts.hpp"
 
-int main(int argc, char* argv[])
+cxxopts::ParseResult
+parse(int argc, char* argv[])
 {
   try
   {
@@ -55,6 +56,7 @@ int main(int argc, char* argv[])
       ("help", "Print help")
       ("int", "An integer", cxxopts::value<int>(), "N")
       ("float", "A floating point number", cxxopts::value<float>())
+      ("vector", "A list of doubles", cxxopts::value<std::vector<double>>())
       ("option_that_is_too_long_for_the_help", "A very long option")
     #ifdef CXXOPTS_USE_UNICODE
       ("unicode", u8"A help option with non-ascii: à. Here the size of the"
@@ -129,13 +131,32 @@ int main(int argc, char* argv[])
       std::cout << "float = " << result["float"].as<float>() << std::endl;
     }
 
+    if (result.count("vector"))
+    {
+      std::cout << "vector = ";
+      const auto values = result["vector"].as<std::vector<double>>();
+      for (const auto& v : values) {
+        std::cout << v << ", ";
+      }
+      std::cout << std::endl;
+    }
+
     std::cout << "Arguments remain = " << argc << std::endl;
+
+    return result;
 
   } catch (const cxxopts::OptionException& e)
   {
     std::cout << "error parsing options: " << e.what() << std::endl;
     exit(1);
   }
+}
+
+int main(int argc, char* argv[])
+{
+  auto result = parse(argc, argv);
+  auto arguments = result.arguments();
+  std::cout << "Saw " << arguments.size() << " arguments" << std::endl;
 
   return 0;
 }
